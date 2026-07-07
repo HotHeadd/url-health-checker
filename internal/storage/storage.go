@@ -3,16 +3,15 @@ package storage
 import (
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 type Result struct {
-	URL        string        `json:"url"`
-	StatusCode int           `json:"status_code"`
-	Duration   time.Duration `json:"request_duration"`
-	Err        string        `json:"error"`
+	URL        string `json:"url"`
+	StatusCode int    `json:"status_code"`
+	Duration   int64  `json:"request_duration_ms"`
+	Err        string `json:"error"`
 }
 
 type Status string

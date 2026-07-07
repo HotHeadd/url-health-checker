@@ -33,7 +33,7 @@ func (c *Checker) CheckOne(ctx context.Context, url string) storage.Result {
 	}
 	start := time.Now()
 	resp, err := c.client.Do(req)
-	result.Duration = time.Since(start)
+	result.Duration = time.Since(start).Milliseconds()
 
 	if err != nil {
 		result.Err = err.Error()
