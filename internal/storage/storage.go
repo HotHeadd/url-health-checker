@@ -1,8 +1,8 @@
 package storage
 
 import (
+	"context"
 	"errors"
-	"sync"
 
 	"github.com/google/uuid"
 )
@@ -27,31 +27,11 @@ type Task struct {
 	Result []Result
 }
 
-type Storage struct {
-	checks map[uuid.UUID]Task
-	mtx    sync.RWMutex
+type Storage interface {
+	CreateTask(ctx context.Context, id uuid.UUID) error
+	CompleteTask(ctx context.Context, id uuid.UUID, results []Result) error
+	GetResult(ctx context.Context, id uuid.UUID) (Task, error)
+	Close()
 }
 
 var ErrTaskDoesNotExist error = errors.New("task not found")
-
-func NewStorage() *Storage {
-	return &Storage{
-		checks: make(map[uuid.UUID]Task),
-	}
-}
-
-func (s *Storage) SetResult(id uuid.UUID, res Task) {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-	s.checks[id] = res
-}
-
-func (s *Storage) GetResult(id uuid.UUID) (res Task, err error) {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
-	if _, ok := s.checks[id]; !ok {
-		return Task{}, ErrTaskDoesNotExist
-	}
-	return s.checks[id], nil
-
-}

@@ -1,0 +1,7 @@
+/bin/
+*.exe
+/url-checker
+.env
+# IDE
+.vscode/
+.idea/

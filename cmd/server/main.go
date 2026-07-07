@@ -9,15 +9,22 @@ import (
 	"syscall"
 	"time"
 	"url-checker/internal/api"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	_ = godotenv.Load()
 	logger := slog.New(slog.NewJSONHandler(
 		os.Stdout,
 		&slog.HandlerOptions{
 			Level: slog.LevelInfo,
 		}))
-	s := api.NewServer(logger)
+	s, err := api.NewServer(logger)
+	if err != nil {
+		logger.Error("server creation failed", "error", err)
+		os.Exit(1)
+	}
 
 	srv := &http.Server{
 		Addr:         ":8080",
@@ -42,9 +49,5 @@ func main() {
 	if err := srv.Shutdown(shutdownCtx); err != nil { // говорим серверу чтобы не принимал новые соединения
 		logger.Error("graceful shutdown failed", "error", err)
 	}
-	done := s.WaitChecks() // дожидаемся активных проверок
-	select {
-	case <-done:
-	case <-time.After(15 * time.Second):
-	}
+	s.Close()
 }

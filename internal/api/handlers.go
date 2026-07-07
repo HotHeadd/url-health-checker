@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 	"url-checker/internal/storage"
@@ -47,9 +48,12 @@ func (s *Server) HandlePostChecks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := uuid.New()
-	s.storage.SetResult(id, storage.Task{
-		Status: storage.Pending,
-	})
+	err = s.storage.CreateTask(r.Context(), id)
+	if err != nil {
+		s.logger.Error("failed to create task in db", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	s.checkGroup.Go(func() {
 		s.logger.Info("check started", "id", id, "urls", len(req.URLs))
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -57,11 +61,12 @@ func (s *Server) HandlePostChecks(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		result := s.checker.CheckAll(ctx, req.URLs)
 		end := time.Since(start).Milliseconds()
-		s.storage.SetResult(id, storage.Task{
-			Status: storage.Done,
-			Result: result,
-		})
-		s.logger.Info("check completed", "id", id, "duration_ms", end)
+		err = s.storage.CompleteTask(ctx, id, result)
+		if err != nil {
+			s.logger.Error("failed to complete task in db", "error", err)
+		} else {
+			s.logger.Info("check completed", "id", id, "duration_ms", end)
+		}
 	})
 
 	resp := CheckResponse{
@@ -84,9 +89,14 @@ func (s *Server) HandleGetCheckId(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	task, err := s.storage.GetResult(id)
-	if err != nil {
+	task, err := s.storage.GetResult(r.Context(), id)
+	if errors.Is(err, storage.ErrTaskDoesNotExist) {
 		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		s.logger.Error("error getting result from db", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
