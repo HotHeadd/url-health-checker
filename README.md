@@ -2,7 +2,7 @@
 
 Асинхронный сервис проверки доступности HTTP-эндпоинтов. Клиент отправляет пачку URL, сразу получает ID задачи, а результаты проверок собираются в фоне конкурентно.
 
-![CI](https://github.com/HotHeadd/url-checker/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/HotHeadd/url-health-checker/actions/workflows/ci.yml/badge.svg)
 
 ## Что делает
 

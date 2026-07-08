@@ -62,7 +62,7 @@ func (s *Server) HandlePostChecks(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		result := s.checker.CheckAll(ctx, req.URLs)
 		end := time.Since(start).Milliseconds()
-		err = s.storage.CompleteTask(ctx, id, result)
+		err := s.storage.CompleteTask(ctx, id, result)
 		if err != nil {
 			s.logger.Error("failed to complete task in db", "error", err)
 		} else {
