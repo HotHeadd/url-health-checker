@@ -1,3 +1,4 @@
+// Package api defines handlers.
 package api
 
 import (
@@ -23,13 +24,13 @@ type CheckResponse struct {
 type HealthResponse struct {
 	Status string `json:"status"`
 }
-type CheckIdResp struct {
+type CheckIDResp struct {
 	ID      string           `json:"id"`
 	Status  string           `json:"status"`
 	Results []storage.Result `json:"results,omitempty"`
 }
 
-func (s *Server) HandleGetHealth(w http.ResponseWriter, r *http.Request) {
+func (s *Server) HandleGetHealth(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	response := HealthResponse{Status: "ok"}
@@ -74,14 +75,14 @@ func (s *Server) HandlePostChecks(w http.ResponseWriter, r *http.Request) {
 		Status: string(storage.Pending),
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		s.logger.Error("failed to encode response", "error", err)
 	}
 }
 
-func (s *Server) HandleGetCheckId(w http.ResponseWriter, r *http.Request) {
+func (s *Server) HandleGetCheckID(w http.ResponseWriter, r *http.Request) {
 	idRaw := r.PathValue("id")
 	id, err := uuid.Parse(idRaw)
 	if err != nil {
@@ -100,7 +101,7 @@ func (s *Server) HandleGetCheckId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := CheckIdResp{
+	resp := CheckIDResp{
 		ID:      idRaw,
 		Status:  string(task.Status),
 		Results: task.Result,

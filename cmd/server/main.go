@@ -1,3 +1,4 @@
+// Package main executes program.
 package main
 
 import (
@@ -9,6 +10,7 @@ import (
 	"syscall"
 	"time"
 	"url-checker/internal/api"
+	"url-checker/internal/storage"
 
 	"github.com/joho/godotenv"
 )
@@ -20,11 +22,17 @@ func main() {
 		&slog.HandlerOptions{
 			Level: slog.LevelInfo,
 		}))
-	s, err := api.NewServer(logger)
+
+	dtURL := os.Getenv("DATABASE_URL")
+	dtCtx := context.Background()
+	st, err := storage.NewPgStorage(dtCtx, dtURL)
 	if err != nil {
 		logger.Error("server creation failed", "error", err)
-		os.Exit(1)
+		return
 	}
+	logger.Info("database is up")
+
+	s := api.NewServer(logger, st)
 
 	srv := &http.Server{
 		Addr:         ":8080",

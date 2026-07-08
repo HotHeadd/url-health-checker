@@ -1,3 +1,4 @@
+// Package storage defines the Task storage abstraction and its implementations.
 package storage
 
 import (
@@ -34,4 +35,4 @@ type Storage interface {
 	Close()
 }
 
-var ErrTaskDoesNotExist error = errors.New("task not found")
+var ErrTaskDoesNotExist = errors.New("task not found")

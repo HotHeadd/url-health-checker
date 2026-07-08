@@ -1,11 +1,8 @@
 package api
 
 import (
-	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 	"url-checker/internal/checker"
@@ -20,26 +17,18 @@ type Server struct {
 	checkGroup *sync.WaitGroup
 }
 
-func NewServer(logger *slog.Logger) (*Server, error) {
-	dtUrl := os.Getenv("DATABASE_URL")
-	dtCtx := context.Background()
-	storage, err := storage.NewPgStorage(dtCtx, dtUrl)
-	if err != nil {
-		return nil, fmt.Errorf("database error: %w", err)
-	}
-	logger.Info("database is up")
-	// storage := storage.NewMemStorage()
+func NewServer(logger *slog.Logger, st storage.Storage) *Server {
 	s := &Server{
 		mux:        http.NewServeMux(),
 		checker:    checker.NewChecker(),
-		storage:    storage,
+		storage:    st,
 		logger:     logger,
 		checkGroup: &sync.WaitGroup{},
 	}
 	s.mux.HandleFunc("GET /health", s.HandleGetHealth)
 	s.mux.HandleFunc("POST /checks", s.HandlePostChecks)
-	s.mux.HandleFunc("GET /checks/{id}", s.HandleGetCheckId)
-	return s, nil
+	s.mux.HandleFunc("GET /checks/{id}", s.HandleGetCheckID)
+	return s
 }
 
 func (s *Server) Routes() *http.ServeMux {

@@ -1,3 +1,4 @@
+// Package checker defines Checker type and it's implementation.
 package checker
 
 import (
@@ -39,7 +40,7 @@ func (c *Checker) CheckOne(ctx context.Context, url string) storage.Result {
 		result.Err = err.Error()
 		return result
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // close error intentionally ignored
 	result.StatusCode = resp.StatusCode
 	return result
 }

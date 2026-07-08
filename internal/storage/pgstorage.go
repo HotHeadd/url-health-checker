@@ -14,7 +14,7 @@ type PgStorage struct {
 	pool *pgxpool.Pool
 }
 
-var ErrDBUrlNotSet error = errors.New("database url not set in env")
+var ErrDBUrlNotSet = errors.New("database url not set in env")
 
 func NewPgStorage(ctx context.Context, connString string) (*PgStorage, error) {
 	if connString == "" {
@@ -51,7 +51,7 @@ func (s *PgStorage) CompleteTask(ctx context.Context, id uuid.UUID, results []Re
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck // Rollback error intentionally ignored
 	_, err = tx.Exec(ctx, updateTaskQuery, id)
 	if err != nil {
 		return err
